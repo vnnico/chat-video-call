@@ -1,114 +1,145 @@
+import moment from "moment";
+import type { Moment } from "moment";
 import { v4 } from "uuid";
+
+const generateTime = (
+  year: number,
+  month: number,
+  date: number,
+  hour: number,
+  minute: number
+): Moment => {
+  return moment().set({
+    year,
+    month,
+    date,
+    hour,
+    minute,
+    second: 0,
+  });
+};
 
 export function Message() {
   const chatBubbles = [
     {
       id: v4(),
+      ownedBy: 2,
+      text: "pp",
+      timeAt: generateTime(2025, 10, 18, 10, 10),
+    },
+    {
+      id: v4(),
       ownedBy: 1,
       text: "nic mau king pangsit ga",
-      timeAt: "17:30",
+      timeAt: generateTime(2025, 10, 19, 17, 10),
     },
     {
       id: v4(),
       ownedBy: 1,
       text: "gw otw pulang bntr lg",
-      timeAt: "17:31",
+      timeAt: generateTime(2025, 10, 19, 17, 10),
     },
     {
       id: v4(),
       ownedBy: 1,
       text: "p",
-      timeAt: "17:31",
+      timeAt: generateTime(2025, 10, 19, 17, 11),
     },
     {
       id: v4(),
       ownedBy: 2,
       text: "bntr psn gojek",
-      timeAt: "17:32",
+      timeAt: generateTime(2025, 10, 19, 17, 12),
     },
     {
       id: v4(),
       ownedBy: 2,
       text: "kabarin kalo smpe",
-      timeAt: "17:32",
+      timeAt: generateTime(2025, 10, 19, 17, 12),
     },
     {
       id: v4(),
       ownedBy: 1,
       text: "oke",
-      timeAt: "17:32",
+      timeAt: generateTime(2025, 10, 19, 17, 13),
     },
     {
       id: v4(),
       ownedBy: 1,
       text: "dah sampe",
-      timeAt: "17:45",
+      timeAt: generateTime(2025, 10, 19, 17, 20),
     },
     {
       id: v4(),
       ownedBy: 1,
       text: "lu mau apa",
-      timeAt: "17:48",
+      timeAt: generateTime(2025, 10, 19, 17, 23),
     },
     {
       id: v4(),
       ownedBy: 1,
       text: "gw psen dlu aja ya",
-      timeAt: "17:49",
+      timeAt: generateTime(2025, 10, 19, 17, 23),
     },
     {
       id: v4(),
       ownedBy: 2,
       text: "sabar macet",
-      timeAt: "17:51",
+      timeAt: generateTime(2025, 10, 19, 17, 31),
     },
     {
       id: v4(),
       ownedBy: 2,
       text: "ada truk molen 2 ngalang jalan",
-      timeAt: "17:51",
+      timeAt: generateTime(2025, 10, 19, 17, 33),
     },
     {
       id: v4(),
       ownedBy: 1,
       text: "okok",
-      timeAt: "17:51",
+      timeAt: generateTime(2025, 10, 19, 17, 35),
     },
     {
       id: v4(),
       ownedBy: 1,
       text: "kevin jg lagi otw",
-      timeAt: "17:52",
+      timeAt: generateTime(2025, 10, 19, 17, 36),
     },
     {
       id: v4(),
       ownedBy: 2,
       text: "ajak david juga",
-      timeAt: "17:53",
+      timeAt: generateTime(2025, 10, 19, 17, 38),
     },
     {
       id: v4(),
       ownedBy: 1,
       text: "abar gw chat",
-      timeAt: "17:54",
+      timeAt: generateTime(2025, 10, 19, 17, 38),
     },
     {
       id: v4(),
       ownedBy: 2,
       text: "avjdsij vovnsdoivncsoivnoisdcvsodicnsodncsidcnosdvnsocnsdoicjsdoicjsdoicvsdionsdnsodnvonsvosnv",
-      timeAt: "17:54",
+      timeAt: generateTime(2025, 10, 19, 17, 40),
     },
     {
       id: v4(),
       ownedBy: 1,
       text: "apaan njirr",
-      timeAt: "17:54",
+      timeAt: generateTime(2025, 10, 19, 17, 41),
     },
     {
       id: v4(),
       ownedBy: 2,
       text: "kepencet",
-      timeAt: "17:54",
+      timeAt: generateTime(2025, 10, 19, 18, 30),
+    },
+    {
+      id: v4(),
+      ownedBy: 1,
+      text: "oiii",
+      timeAt: generateTime(2025, 10, 20, 18, 30),
     },
   ];
 
@@ -138,25 +169,42 @@ export function Message() {
         }}
       >
         {/* Chat Bubbles */}
-        {chatBubbles.map((cb) => (
-          <div
-            key={cb.id}
-            className={` w-fit max-w-[20rem] break-words py-2 rounded-lg ps-3 pe-4  ${
-              cb.ownedBy === currentId
-                ? "ms-auto bg-amber-100"
-                : "bg-orange-100"
-            }`}
-          >
-            <div className="flex items-end gap-2">
-              <p className="text-md break-all whitespace-pre-wrap overflow-hidden">
-                {cb.text}
-              </p>
-              <p className="text-[11px] text-gray-700 whitespace-nowrap flex-shrink-0">
-                {cb.timeAt}
-              </p>
-            </div>
-          </div>
-        ))}
+        {chatBubbles &&
+          chatBubbles.map((cb, index) => (
+            <>
+              {/* Day and time title */}
+              {index === 0 ||
+              (index > 0 &&
+                cb.timeAt.day() !== chatBubbles.at(index - 1)?.timeAt.day()) ? (
+                <div className="w-full text-center pb-2">
+                  <p className="text-md text-gray-700">
+                    {cb.timeAt.format("dddd, DD MMMM YYYY")}
+                  </p>
+                </div>
+              ) : (
+                ""
+              )}
+
+              {/* Chat Bubble */}
+              <div
+                key={cb.id}
+                className={` w-fit max-w-[20rem] break-words py-2 rounded-lg ps-3 pe-4  ${
+                  cb.ownedBy === currentId
+                    ? "ms-auto bg-amber-100"
+                    : "bg-orange-100"
+                }`}
+              >
+                <div className="flex items-end gap-2">
+                  <p className="text-md break-all whitespace-pre-wrap overflow-hidden">
+                    {cb.text}
+                  </p>
+                  <p className="text-[11px] text-gray-700 whitespace-nowrap flex-shrink-0">
+                    {moment(cb.timeAt).format("LT")}
+                  </p>
+                </div>
+              </div>
+            </>
+          ))}
       </div>
       {/* Message Input */}
       <div className="bg-orange-100 flex gap-2 p-3">
@@ -164,7 +212,7 @@ export function Message() {
           <input
             type="text"
             placeholder="Type a message"
-            className="w-full outline-amber-50"
+            className="w-full outline-amber-50 focus:outline-none"
           />
         </div>
         <p className="text-sm m-auto p-1">Send</p>

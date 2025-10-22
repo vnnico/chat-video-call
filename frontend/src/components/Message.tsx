@@ -157,7 +157,9 @@ export function Message() {
             />
           </div>
           <p className="font-semibold text-md my-auto">Nico</p>
-          <p className="ms-auto text-md my-auto">Video Call</p>
+          <p className="ms-auto text-md my-auto hover:cursor-pointer hover:bg-amber-50 transition-colors duration-200 p-2 rounded-lg">
+            Video Call
+          </p>
         </div>
       </div>
       {/* Message Box */}
@@ -177,7 +179,7 @@ export function Message() {
               (index > 0 &&
                 cb.timeAt.day() !== chatBubbles.at(index - 1)?.timeAt.day()) ? (
                 <div className="w-full text-center pb-2">
-                  <p className="text-md text-gray-700">
+                  <p className="text-[12px] text-gray-700">
                     {cb.timeAt.format("dddd, DD MMMM YYYY")}
                   </p>
                 </div>

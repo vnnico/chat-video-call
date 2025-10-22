@@ -9,6 +9,7 @@ export function Chatbox() {
       timeAt: "18:57",
       totalMessages: 1,
       isRead: false,
+      messageId: 1,
     },
     {
       id: v4(),
@@ -17,6 +18,7 @@ export function Chatbox() {
       timeAt: "16:50",
       totalMessages: 3,
       isRead: false,
+      messageId: 2,
     },
     {
       id: v4(),
@@ -25,6 +27,7 @@ export function Chatbox() {
       timeAt: "16:30",
       totalMessages: 1,
       isRead: false,
+      messageId: 3,
     },
   ];
 

@@ -1,42 +1,51 @@
-import { v4 } from "uuid";
+import { useRef } from "react";
+import type { Chatbox } from "../pages/Chat";
 
-export function Chatbox() {
-  const chatboxs = [
-    {
-      id: v4(),
-      name: "Nico",
-      preview: "lg dmn?",
-      timeAt: "18:57",
-      totalMessages: 1,
-      isRead: false,
-      messageId: 1,
-    },
-    {
-      id: v4(),
-      name: "Ayana",
-      preview: "ayo kesini",
-      timeAt: "16:50",
-      totalMessages: 3,
-      isRead: false,
-      messageId: 2,
-    },
-    {
-      id: v4(),
-      name: "Pak Ayub",
-      preview: "Sudah didepan pak",
-      timeAt: "16:30",
-      totalMessages: 1,
-      isRead: false,
-      messageId: 3,
-    },
-  ];
+interface ChatBoxProps {
+  chatboxs: Chatbox[];
+  openChat: (id: string, name: string, isGroup: boolean) => void;
+  changeChatType: (chatType: string) => void;
+}
+
+export function Chatbox({ chatboxs, openChat, changeChatType }: ChatBoxProps) {
+  const activeChatbox = useRef<string>("");
 
   return (
     <div className="w-full h-full gap-4 flex flex-col overflow-y-auto custom-scrollbar pr-1">
+      <div className="flex gap-2 p-1">
+        <div
+          className="outline-2 hover:bg-amber-50 transition-colors duration-200 p-1 rounded-lg cursor-pointer"
+          onClick={() => changeChatType("All")}
+        >
+          <p className="text-md">All</p>
+        </div>
+        <div
+          className="outline-2 hover:bg-amber-50 transition-colors duration-200 p-1 rounded-lg cursor-pointer"
+          onClick={() => changeChatType("Personal")}
+        >
+          <p className="text-md">Personal</p>
+        </div>
+        <div
+          className="outline-2 hover:bg-amber-50 transition-colors duration-200 p-1 rounded-lg cursor-pointer"
+          onClick={() => changeChatType("Groups")}
+        >
+          <p className="text-md">Groups</p>
+        </div>
+      </div>
+
+      {/* Chatboxs */}
       {chatboxs.map((chatbox) => (
         <div
-          className="flex gap-3 rounded-md hover:bg-amber-50 transition-colors duration-200 p-2 cursor-pointer "
+          className={
+            activeChatbox.current === chatbox.id
+              ? `flex gap-3 rounded-md bg-amber-50 p-2 cursor-pointer`
+              : `flex gap-3 rounded-md hover:bg-amber-50 transition-colors duration-200 p-2 cursor-pointer `
+          }
           key={chatbox.id}
+          onClick={() => {
+            openChat(chatbox.id, chatbox.name, chatbox.chatType === "Groups");
+            activeChatbox.current = chatbox.id;
+          }}
         >
           <div className="rounded-full w-[50px] overflow-hidden">
             <img

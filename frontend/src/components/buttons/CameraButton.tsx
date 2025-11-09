@@ -14,7 +14,6 @@ export function CameraButton({ state, toggleCamera }: CameraButtonProps) {
       <>
         {state && <LuCamera></LuCamera>}
         {!state && <LuCameraOff></LuCameraOff>}
-        {/* {state === "switch" && <LuSwitchCamera></LuSwitchCamera>} */}
       </>
     </button>
   );

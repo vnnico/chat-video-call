@@ -34,6 +34,11 @@ export function VideoCall() {
     e.stopPropagation();
   };
 
+  // Check user's device
+  let mobileRegex: RegExp =
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/;
+  let isMobile: boolean = mobileRegex.test(window.navigator.userAgent);
+
   return (
     <div className="w-full h-full bg-orange-100 flex flex-col rounded-lg gap-3">
       {/* Camera */}
@@ -43,14 +48,16 @@ export function VideoCall() {
           className="w-[20%] h-[20%] bg-orange-100 absolute rounded-2xl m-3 right-0 hover:cursor-pointer hover:before:content-[''] hover:before:absolute hover:before:inset-0 hover:before:bg-stone-950 hover:before:opacity-25 hover:before:rounded-2xl transition-colors duration-200 "
           onClick={changeMainPicture}
         >
-          <div className="relative w-full h-full group">
-            <button
-              className="hover:cursor-pointer p-2 text-lg absolute right-0 bottom-0 bg-amber-50"
-              onClick={switchCamera}
-            >
-              <LuSwitchCamera></LuSwitchCamera>
-            </button>
-          </div>
+          {isMobile && (
+            <div className="relative w-full h-full group">
+              <button
+                className="hover:cursor-pointer p-2 text-lg absolute right-0 bottom-0 bg-amber-50"
+                onClick={switchCamera}
+              >
+                <LuSwitchCamera></LuSwitchCamera>
+              </button>
+            </div>
+          )}
           <p className=" text-lg absolute top-12 right-20">{miniPicture}</p>
         </div>
         <p className="m-auto text-2xl">{mainPicture}</p>

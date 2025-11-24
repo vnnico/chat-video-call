@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { Chatbox } from "../components/Chatbox";
 import { Message } from "../components/Message";
-import { v4 } from "uuid";
+import { socket } from "../services/socket";
+import { useNavigate } from "react-router";
+import { useAuth } from "../contexts/AuthContext";
+import moment, { type Moment } from "moment";
 
 export type Chatbox = {
   id: string;
@@ -14,94 +17,86 @@ export type Chatbox = {
   members: string[];
 };
 
-const chatboxsList: Chatbox[] = [
-  {
-    id: "conv1",
-    name: "Nico",
-    preview: "lg dmn?",
-    timeAt: "18:57",
-    totalMessages: 1,
-    isRead: false,
-    chatType: "Personal",
-    members: [],
-  },
-  {
-    id: v4(),
-    name: "Ayana",
-    preview: "ayo kesini",
-    timeAt: "16:50",
-    totalMessages: 3,
-    isRead: false,
-    chatType: "Personal",
-    members: [],
-  },
-  {
-    id: v4(),
-    name: "Pak Ayub",
-    preview: "Sudah didepan pak",
-    timeAt: "16:30",
-    totalMessages: 1,
-    isRead: false,
-    chatType: "Personal",
-    members: [],
-  },
-  {
-    id: v4(),
-    name: "Galon",
-    preview: "makasih mas",
-    timeAt: "16:30",
-    totalMessages: 1,
-    isRead: false,
-    chatType: "Personal",
-    members: [],
-  },
-  {
-    id: v4(),
-    name: "Group Angkatan '20",
-    preview: "baik terimakasih",
-    timeAt: "16:30",
-    totalMessages: 1,
-    isRead: true,
-    chatType: "Groups",
-    members: ["Andi", "Tono", "Kina"],
-  },
-  {
-    id: "group1",
-    name: "EXHUMA",
-    preview: "oke w otw",
-    timeAt: "16:30",
-    totalMessages: 1,
-    isRead: false,
-    chatType: "Groups",
-    members: ["David", "Hansen", "Nata", "Wilson", "Kevin", "Nico"],
-  },
-];
-
 export function Chat() {
   let [activeChat, setActiveChat] = useState<string>("");
   let [chatType, setChatType] = useState<string>("All");
 
   let [peerName, setPeerName] = useState<string>("");
+  let [peerId, setPeerId] = useState<string>("");
   let [isGroup, setIsGroup] = useState<boolean>(false);
-  let [chatboxs, setChatboxs] = useState<Chatbox[]>(chatboxsList);
+  let [chatboxs, setChatboxs] = useState<Chatbox[]>([]);
+
+  const navigate = useNavigate();
+
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user?.id) {
+      navigate("/", { replace: true });
+    }
+  }, [user]);
 
   const openChat = (id: string, name: string, isGroup: boolean) => {
     setActiveChat(id);
     setPeerName(name);
     setIsGroup(isGroup);
+
+    // Get all messages of current room
+    // Id adalah roomId.
+    socket.emit("open chat by roomId", { roomId: id }, (res: any) => {
+      if (!res?.ok) return;
+      setPeerId(res?.peerId);
+    });
   };
 
   const changeChatType = (chatType: string) => {
     setChatType(chatType);
   };
 
+  // useEffect(() => {
+  //   if (chatType === "All") {
+  //     setChatboxs(chatboxsList);
+  //   } else {
+  //     setChatboxs(chatboxsList.filter((cb) => cb.chatType === chatType));
+  //   }
+  // }, [chatType]);
+
   useEffect(() => {
-    if (chatType === "All") {
-      setChatboxs(chatboxsList);
-    } else {
-      setChatboxs(chatboxsList.filter((cb) => cb.chatType === chatType));
-    }
-  }, [chatType]);
+    // Check if user has set
+    if (!user) return;
+
+    // Set socket auth
+    socket.auth = {
+      user,
+    };
+    // Socket connect to server (harusnya ada middleware)
+    socket.connect();
+
+    // LISTEN: Get list of the room upon connection
+    socket.on("chats list", ({ data }) => {
+      setChatboxs(data);
+    });
+
+    // LISTEN: Get notification
+    socket.on("new notification", ({ data }) => {
+      console.log(data);
+      setChatboxs((prev) => {
+        const exist = prev.some((cb) => cb.id === data.id);
+
+        if (!exist) return prev;
+
+        return prev.map((cb) =>
+          cb.id === data.id
+            ? {
+                ...cb,
+                preview: data.message,
+                timeAt: moment(data.timeAt).format("DD/MM/YYYY"),
+              }
+            : cb
+        );
+      });
+    });
+  }, [user]);
 
   return (
     <div className="w-full h-full flex divide-x divide-gray-200">
@@ -131,6 +126,7 @@ export function Chat() {
       <Message
         activeChat={activeChat}
         peerName={peerName}
+        peerId={peerId}
         isGroup={isGroup}
       ></Message>
     </div>

@@ -354,7 +354,7 @@ io.on("connection", (socket) => {
   io.to(socket.id).emit("chats list", { data: chatroomsList });
 
   // Listen for incoming message
-  socket.on("send message", ({ msg }, ack) => {
+  socket.on("send message", ({ msg, isOffline = false }, ack) => {
     // Store new message
     const newMsg = {
       id: uuidv4(),
@@ -362,8 +362,12 @@ io.on("connection", (socket) => {
       senderId: msg.senderId,
       recipientId: msg.recipientId,
       text: msg.text,
-      createdAt: moment(),
+      createdAt: msg.createdAt,
     };
+
+    // Offline mode
+    if (!isOffline) newMsg.createdAt = moment();
+
     messages.push(newMsg);
 
     // Broadcast to both sender and recipient
@@ -372,8 +376,9 @@ io.on("connection", (socket) => {
     });
 
     // Get list of sockets in each peer and push it into list.
-    let senderSockets = onlineUsers.get(msg.senderId);
-    let recipientSockets = onlineUsers.get(msg.recipientId);
+    let senderSockets = onlineUsers.get(msg.senderId) ?? [];
+    let recipientSockets = onlineUsers.get(msg.recipientId) ?? [];
+
     let sockets = [...senderSockets, ...recipientSockets];
 
     // Send notification to user
@@ -412,7 +417,9 @@ io.on("connection", (socket) => {
     socket.join(roomId);
 
     // Send all messages
-    const msg = messages.filter((message) => message.roomId === roomId);
+    const msg = messages
+      .filter((m) => m.roomId === roomId)
+      .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf());
     // await sleep(3000);
 
     // Get recipient
@@ -423,6 +430,12 @@ io.on("connection", (socket) => {
     if (ack) ack({ ok: true, peerId: recipientId });
 
     io.to(socket.id).emit("sync messages", { data: msg });
+  });
+
+  socket.on("join room", ({ roomId }, ack) => {
+    // Socket join room
+    socket.join(roomId);
+    if (ack) ack({ ok: true });
   });
 });
 

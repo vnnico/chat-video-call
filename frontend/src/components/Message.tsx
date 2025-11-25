@@ -4,30 +4,29 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { socket } from "../services/socket";
 import { v4 } from "uuid";
+import type { Message, OfflineMessage } from "../pages/Chat";
+import { useSessionStorage } from "../hooks/hook";
+import { useStorage } from "../contexts/StorageContext";
 
 interface MessageProps {
   activeChat: string;
   peerName: string;
   peerId: string;
   isGroup: boolean;
+  messageBox: Message[];
+  setMessageBox: React.Dispatch<React.SetStateAction<Message[]>>;
 }
-
-type Message = {
-  id: string;
-  roomId: string;
-  senderId: string | undefined;
-  recipientId: string;
-  text: string;
-  createdAt: Moment;
-};
 
 export function Message({
   activeChat,
   peerName,
   peerId,
   isGroup,
+  messageBox,
+  setMessageBox,
 }: MessageProps) {
-  const [messageBox, setMessageBox] = useState<Message[]>([]);
+  const { offlineStorage, setOfflineStorage } = useStorage();
+
   const [isSend, setIsSend] = useState<boolean>(false);
   const [message, setMessage] = useState<string>("");
   const { user } = useAuth();
@@ -48,6 +47,7 @@ export function Message({
     const handleNewMessage = ({ data }: any) => {
       const { message, tempId } = data;
 
+      console.log("masuk nggakk");
       // Check if current active chat room matches with incoming message
       // Original sender's message bubble, update its ID and createdAt to match server truth.
       if (message.roomId !== activeChat) return;
@@ -71,14 +71,15 @@ export function Message({
     // Listen for incoming message
     socket.on("new message", handleNewMessage);
 
+    // Clean up socket listener
     return () => {
       socket.off("sync messages", handleSync);
       socket.off("new message", handleNewMessage);
     };
-  }, [activeChat, user]);
+  }, [activeChat, peerName, isGroup, user, messageBox]);
 
   // Socket send message
-  const sendMessage = (e: React.FormEvent) => {
+  let sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeChat) return;
 
@@ -99,14 +100,28 @@ export function Message({
     setMessageBox([...messageBox, msg]);
 
     // Send only if socket is connected
-    if (socket.connected) {
-      socket.emit("send message", { msg }, (res: any) => {
+    if (navigator.onLine && socket.connected) {
+      socket.volatile.emit("send message", { msg }, (res: any) => {
         if (!res?.ok) alert("failed to send message");
 
         // Set status is sent
+        // ...
       });
     } else {
-      // Push to offline storage
+      console.info("Offline Mode");
+
+      console.log(">>> OFFLINE MODE TRIGGERED <<<");
+      console.log("prev value:", offlineStorage);
+      console.log("about to write:", {
+        ...offlineStorage,
+        [activeChat]: [...(offlineStorage[activeChat] || []), msg],
+      });
+
+      // Push to offline storage managed by Session Storage.
+      setOfflineStorage({
+        ...offlineStorage,
+        [activeChat]: [...(offlineStorage[activeChat] || []), msg],
+      });
     }
 
     setMessage("");

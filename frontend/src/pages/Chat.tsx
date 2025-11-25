@@ -5,6 +5,7 @@ import { socket } from "../services/socket";
 import { useNavigate } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
 import moment, { type Moment } from "moment";
+import { useStorage } from "../contexts/StorageContext";
 
 export type Chatbox = {
   id: string;
@@ -17,14 +18,29 @@ export type Chatbox = {
   members: string[];
 };
 
+export type Message = {
+  id: string;
+  roomId: string;
+  senderId: string | undefined;
+  recipientId: string;
+  text: string;
+  createdAt: Moment;
+};
+
+export type OfflineMessage = Record<string, Message[]>;
+
 export function Chat() {
   let [activeChat, setActiveChat] = useState<string>("");
   let [chatType, setChatType] = useState<string>("All");
+
+  const { offlineStorage, setOfflineStorage } = useStorage();
 
   let [peerName, setPeerName] = useState<string>("");
   let [peerId, setPeerId] = useState<string>("");
   let [isGroup, setIsGroup] = useState<boolean>(false);
   let [chatboxs, setChatboxs] = useState<Chatbox[]>([]);
+
+  const [messageBox, setMessageBox] = useState<Message[]>([]);
 
   const navigate = useNavigate();
 
@@ -40,7 +56,7 @@ export function Chat() {
     setActiveChat(id);
     setPeerName(name);
     setIsGroup(isGroup);
-
+    setMessageBox([]);
     // Get all messages of current room
     // Id adalah roomId.
     socket.emit("open chat by roomId", { roomId: id }, (res: any) => {
@@ -62,24 +78,70 @@ export function Chat() {
   // }, [chatType]);
 
   useEffect(() => {
-    // Check if user has set
     if (!user) return;
 
-    // Set socket auth
-    socket.auth = {
-      user,
-    };
-    // Socket connect to server (harusnya ada middleware)
+    socket.auth = { user };
     socket.connect();
 
-    // LISTEN: Get list of the room upon connection
-    socket.on("chats list", ({ data }) => {
-      setChatboxs(data);
-    });
+    const handleConnect = async () => {
+      console.log("YESSS");
+      console.log("tetw : ", offlineStorage);
 
-    // LISTEN: Get notification
-    socket.on("new notification", ({ data }) => {
-      console.log(data);
+      try {
+        // send offline messages
+        for (const [roomId, messages] of Object.entries(offlineStorage)) {
+          console.log("lesgo");
+          await new Promise((resolve, reject) => {
+            socket.emit("join room", { roomId }, (res: any) => {
+              if (res?.ok) resolve(true);
+              else reject("Failed to join room " + roomId);
+            });
+          });
+
+          for (const msg of messages) {
+            await new Promise((resolve, reject) => {
+              socket.emit(
+                "send message",
+                { msg, isOffline: true },
+                (res: any) => {
+                  if (res?.ok) resolve(true);
+                  else reject("Failed to send message");
+                }
+              );
+            });
+          }
+        }
+
+        // After reconnecting and in position of opening the chat
+        if (
+          Object.entries(offlineStorage).length > 0 &&
+          activeChat.length > 0
+        ) {
+          socket.emit(
+            "open chat by roomId",
+            { roomId: activeChat },
+            (res: any) => {
+              if (!res?.ok) return;
+            }
+          );
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        console.log("Clearing offline storage");
+        setOfflineStorage({});
+      }
+    };
+
+    const handleDisconnect = () => {
+      console.log("mulai disconnect...");
+    };
+
+    const handleChatsList = ({ data }: any) => {
+      setChatboxs(data);
+    };
+
+    const handleNotification = ({ data }: any) => {
       setChatboxs((prev) => {
         const exist = prev.some((cb) => cb.id === data.id);
 
@@ -95,8 +157,19 @@ export function Chat() {
             : cb
         );
       });
-    });
-  }, [user]);
+    };
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    socket.on("chats list", handleChatsList);
+    socket.on("new notification", handleNotification);
+
+    return () => {
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
+      socket.off("chats list", handleChatsList);
+      socket.off("new notification", handleNotification);
+    };
+  }, [user, offlineStorage]);
 
   return (
     <div className="w-full h-full flex divide-x divide-gray-200">
@@ -128,6 +201,8 @@ export function Chat() {
         peerName={peerName}
         peerId={peerId}
         isGroup={isGroup}
+        messageBox={messageBox}
+        setMessageBox={setMessageBox}
       ></Message>
     </div>
   );

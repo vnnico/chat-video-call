@@ -47,7 +47,6 @@ export function Message({
     const handleNewMessage = ({ data }: any) => {
       const { message, tempId } = data;
 
-      console.log("masuk nggakk");
       // Check if current active chat room matches with incoming message
       // Original sender's message bubble, update its ID and createdAt to match server truth.
       if (message.roomId !== activeChat) return;
@@ -65,16 +64,30 @@ export function Message({
       });
     };
 
+    const handlePeerOnline = ({ data }: any) => {
+      // If peer in the room has online (e.g: reconnect)
+      const roomId = data;
+
+      if (roomId === activeChat) {
+        socket.emit("refetch messge", { roomId: roomId }, (res: any) => {
+          if (!res?.ok) return;
+        });
+      }
+    };
+
     // Listen for stored messages
     socket.on("sync messages", handleSync);
 
     // Listen for incoming message
     socket.on("new message", handleNewMessage);
 
+    // Listen for user online status
+    socket.on("peer online", handlePeerOnline);
     // Clean up socket listener
     return () => {
       socket.off("sync messages", handleSync);
       socket.off("new message", handleNewMessage);
+      socket.off("peer online", handlePeerOnline);
     };
   }, [activeChat, peerName, isGroup, user, messageBox]);
 

@@ -100,7 +100,7 @@ export function Chat() {
 
           for (const msg of messages) {
             await new Promise((resolve, reject) => {
-              socket.emit(
+              socket.volatile.emit(
                 "send message",
                 { msg, isOffline: true },
                 (res: any) => {
@@ -113,10 +113,7 @@ export function Chat() {
         }
 
         // After reconnecting and in position of opening the chat
-        if (
-          Object.entries(offlineStorage).length > 0 &&
-          activeChat.length > 0
-        ) {
+        if (activeChat.length > 0) {
           socket.emit(
             "open chat by roomId",
             { roomId: activeChat },
@@ -124,6 +121,10 @@ export function Chat() {
               if (!res?.ok) return;
             }
           );
+
+          socket.emit("has online", { roomId: activeChat }, (res: any) => {
+            if (!res?.ok) return;
+          });
         }
       } catch (err) {
         console.error(err);

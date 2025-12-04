@@ -80,168 +80,16 @@ const rooms = [
   },
 ];
 
-const messages = [
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nico",
-    recipientId: "nata",
-    text: "pp",
-    createdAt: generateTime(2025, 10, 18, 10, 10),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "nic mau king pangsit ga",
-    createdAt: generateTime(2025, 10, 19, 17, 10),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "gw otw pulang bntr lg",
-    createdAt: generateTime(2025, 10, 19, 17, 10),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "p",
-    createdAt: generateTime(2025, 10, 19, 17, 11),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nico",
-    recipientId: "nata",
-    text: "bntr psn gojek",
-    createdAt: generateTime(2025, 10, 19, 17, 12),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nico",
-    recipientId: "nata",
-    text: "kabarin kalo smpe",
-    createdAt: generateTime(2025, 10, 19, 17, 12),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "oke",
-    createdAt: generateTime(2025, 10, 19, 17, 13),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "dah sampe",
-    createdAt: generateTime(2025, 10, 19, 17, 20),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "lu mau apa",
-    createdAt: generateTime(2025, 10, 19, 17, 23),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "gw psen dlu aja ya",
-    createdAt: generateTime(2025, 10, 19, 17, 23),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nico",
-    recipientId: "nata",
-    text: "sabar macet",
-    createdAt: generateTime(2025, 10, 19, 17, 31),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nico",
-    recipientId: "nata",
-    text: "ada truk molen 2 ngalang jalan",
-    createdAt: generateTime(2025, 10, 19, 17, 33),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "okok",
-    createdAt: generateTime(2025, 10, 19, 17, 35),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "kevin jg lagi otw",
-    createdAt: generateTime(2025, 10, 19, 17, 36),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nico",
-    recipientId: "nata",
-    text: "ajak david juga",
-    createdAt: generateTime(2025, 10, 19, 17, 38),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "abar gw chat",
-    createdAt: generateTime(2025, 10, 19, 17, 38),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nico",
-    recipientId: "nata",
-    text: "avjdsij vovnsdoivncsoivnoisdcvsodicnsodncsidcnosdvnsocnsdoicjsdoicjsdoicvsdionsdnsodnvonsvosnv",
-    createdAt: generateTime(2025, 10, 19, 17, 40),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "apaan njirr",
-    createdAt: generateTime(2025, 10, 19, 17, 41),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nico",
-    recipientId: "nata",
-    text: "kepencet",
-    createdAt: generateTime(2025, 10, 19, 18, 30),
-  },
-  {
-    id: uuidv4(),
-    roomId: "room_nico_nata",
-    senderId: "nata",
-    recipientId: "nico",
-    text: "oiii",
-    createdAt: generateTime(2025, 10, 20, 18, 30),
-  },
-];
+type Message = {
+  id: string;
+  roomId: string;
+  senderId: string | undefined;
+  recipientId: string;
+  text: string;
+  createdAt: Moment;
+};
+
+const messages: Message[] = [];
 
 type Chatbox = {
   id: string;
@@ -350,7 +198,6 @@ io.on("connection", (socket) => {
 
   // Send list of chatrooms
   const chatroomsList = buildChatListForUser(user.id);
-  console.log(chatroomsList);
   io.to(socket.id).emit("chats list", { data: chatroomsList });
 
   // Listen for incoming message
@@ -407,7 +254,6 @@ io.on("connection", (socket) => {
 
     // Send all messages
     const msg = messages.filter((message) => message.roomId === roomId);
-    console.log(msg);
     socket.emit("sync messages", { data: msg });
   });
 
@@ -419,7 +265,13 @@ io.on("connection", (socket) => {
     // Send all messages
     const msg = messages
       .filter((m) => m.roomId === roomId)
+      .map((m) => ({
+        ...m,
+        createdAt: moment(m.createdAt), // <<< FIX
+      }))
       .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf());
+
+    console.log(msg);
     // await sleep(3000);
 
     // Get recipient
@@ -436,6 +288,32 @@ io.on("connection", (socket) => {
     // Socket join room
     socket.join(roomId);
     if (ack) ack({ ok: true });
+  });
+
+  socket.on("has online", ({ roomId }, ack) => {
+    socket.to(roomId).emit("peer online", { data: roomId });
+  });
+
+  socket.on("refetch message", ({ roomId }, ack) => {
+    // Send all messages
+    const msg = messages
+      .filter((m) => m.roomId === roomId)
+      .map((m) => ({
+        ...m,
+        createdAt: moment(m.createdAt), // <<< FIX
+      }))
+      .sort((a, b) => a.createdAt.valueOf() - b.createdAt.valueOf());
+
+    // await sleep(3000);
+
+    // Get recipient
+    const roomTr = rooms.filter((room) => room.id === roomId);
+    const recipientId =
+      roomTr[0]?.user1Id === user.id ? roomTr[0]?.user2Id : roomTr[0]?.user1Id;
+
+    if (ack) ack({ ok: true, peerId: recipientId });
+
+    socket.to(roomId).emit("sync messages", { data: msg });
   });
 });
 
